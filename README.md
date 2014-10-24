@@ -1,10 +1,10 @@
-#ChIPseq Analysis Toolkit
+#pychiptools 
 
-To use the package, please download a copy, unzip and then add the path to your PATH. For example: 
+To use this package, clone the repository and install using 
 
-export PATH=$PATH:~/Programs/chipseq_toolkit/
+	python setup.py install
 
-Also add the path to the downloaded directory to your ~/.bashrc for the python modules. For example:
+This will install the scripts in the pychiptools/scripts directory. For more information on the individual scripts, use the --help command after each script. 
 
-##The pipeline consists of python functions designed around the programs. The help within the programs should explain their usage
+##This is still in development and testing is ongoing.
 
