@@ -38,7 +38,7 @@ def main():
 		rev_adapt = fastqc.find_adapters(fq2)
 		if fwd_adapt or rev_adapt:
 			print "==> Removing adapters...\n"
-			fastqc.cut_adapters(fwd_adapt, fq1, args["outdir"], fq2=fq2, rev_adapters=rev_adapt)
+			fastqc.paired_cut_adapters(fwd_adapt, fq1, args["outdir"], rev_adapt, fq2)
 			fq1 = args["outdir"]+"/trimmed_1.fastq" 
 			fq2 = args["outdir"]+"/trimmed_2.fastq"
 		print "==> Aligning fastq's...\n"
@@ -53,7 +53,7 @@ def main():
 		adapt = fastqc.find_adapters(fq1)
 		if adapt:
 			print "==> Removing adapters...\n"
-			fastqc.cut_adapters(adapt, fq1, args["outdir"])
+			fastqc.single_cut_adapters(adapt, fq1, args["outdir"])
 			fq1 = args["outdir"]+"/trimmed.fastq" 
 		print "==> Aligning fastq's...\n"
 		if args["version"] == "1":

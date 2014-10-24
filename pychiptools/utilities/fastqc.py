@@ -40,28 +40,33 @@ def find_adapters(fq):
 					adapters.append(word[0])
 	return adapters
 
-def cut_adapters(adapters, fq1, outdir, rev_adapters=None, fq2=None):
+def single_cut_adapters(adapters, fq1, outdir):
 	devnull = open('/dev/null', 'w')
 	adapt1 = ""
 	for i in adapters:
 		adapters = "-a {} ".format(i)
 		adapt1 = adapters+adapt1
-	if rev_adapters:
-		adapt2 = ""
-		for i in rev_adapters:
-			adapters = "-a {} ".format(i)
-			adapt2 = adapters+adapt2
+	command1 = "cutadapt -q 20 {0} --minimum-length=10 -o {1}/trimmed.fastq {2}".format(adapt1, outdir, fq1)
+	p = subprocess.Popen(command1.split())
+	p.communicate()
 
-	if rev_adapters:
-		command1 = "cutadapt -q 20 {0} --minimum-length=10 --paired-output {1}/tmp.2.fastq -o {1}/tmp.1.fastq {2} {3}".format(adapt1, outdir, fq1, fq2)
-		p = subprocess.Popen(command1.split())
-		p.communicate()
-		command2 = "cutadapt -q 20 {0} --minimum-length=10 --paired-output {1}/trimmed_1.fastq -o {1}/trimmed_2.fastq {1}/tmp.2.fastq {1}/tmp.1.fastq".format(adapt2, outdir)
-		p = subprocess.Popen(command2.split())
-		p.communicate()
-		cleanup = ["rm", "{0}/tmp.2.fastq".format(outdir), "{0}/tmp.1.fastq".format(outdir)]
-		subprocess.call(cleanup, stdout=devnull)
-	else:
-		command1 = "cutadapt -q 20 {0} --minimum-length=10 -o {1}/trimmed.fastq {2}".format(adapt1, outdir, fq1)
-		p = subprocess.Popen(command1.split())
-		p.communicate()
+def paired_cut_adapters(adapters, fq1, outdir, rev_adapters, fq2):
+	devnull = open('/dev/null', 'w')
+	adapt1 = ""
+	for i in adapters:
+		adapters = "-a {} ".format(i)
+		adapt1 = adapters+adapt1
+
+	adapt2 = ""
+	for i in rev_adapters:
+		adapters = "-a {} ".format(i)
+		adapt2 = adapters+adapt2
+
+	command1 = "cutadapt -q 20 {0} --minimum-length=10 --paired-output {1}/tmp.2.fastq -o {1}/tmp.1.fastq {2} {3}".format(adapt1, outdir, fq1, fq2)
+	p = subprocess.Popen(command1.split())
+	p.communicate()
+	command2 = "cutadapt -q 20 {0} --minimum-length=10 --paired-output {1}/trimmed_1.fastq -o {1}/trimmed_2.fastq {1}/tmp.2.fastq {1}/tmp.1.fastq".format(adapt2, outdir)
+	p = subprocess.Popen(command2.split())
+	p.communicate()
+	cleanup = ["rm", "{0}/tmp.2.fastq".format(outdir), "{0}/tmp.1.fastq".format(outdir)]
+	subprocess.call(cleanup, stdout=devnull)
