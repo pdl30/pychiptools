@@ -1,0 +1,3 @@
+recursive-include pychiptools *.py
+recursive-include pychiptools/data *.sizes
+recursive-include pychiptools/data *.meme
