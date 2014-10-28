@@ -100,8 +100,6 @@ def main():
 	macs2_parser.add_argument('-c','--CONFIG', help='Config file containing [Conditions], [Controls] and [Comparisons] using BAM files', required=True)
 	macs2_parser.add_argument('-a', action='store_true', help='Are samples histones?', required=False)
 	macs2_parser.add_argument('-b', action='store_true', help='Use [bedGraph] from config. This will also query the bam for useable reads value', required=False)
-	macs2_parser.add_argument('-p', action='store_true', help='Postprocess macs2 output', required=False)
-	macs2_parser.add_argument('-gtf', help='GTF for annotation of results, this assumes it is ensembl formatted!', required=False)
 
 	diffReps_parser = subparsers.add_parser('diffReps', help="Runs diffReps for Differential Binding!")
 	diffReps_parser.add_argument('-c','--CONFIG', help='Config file containing [Conditions], [Controls] and [Comparisons] using BED files', required=True)
@@ -109,8 +107,6 @@ def main():
 	diffReps_parser.add_argument('-chrom', help='Chomosome sizes', required=False)
 	diffReps_parser.add_argument('-method', help='Diffrep method, options are nb=Negative binomial; gt=G-test; tt=T-test; cs=Chi-square test', required=False)
 	diffReps_parser.add_argument('-n', action='store_true', help='Uses [Counts] from config to get normalisation constants for program', required=False)
-	diffReps_parser.add_argument('-p', action='store_true', help='Postprocess macs2 output', required=False)
-	diffReps_parser.add_argument('-gtf', help='GTF for annotation of results, this assumes it is ensembl formatted!', required=False)
 
 	manorm_parser = subparsers.add_parser('MAnorm', help="Runs MAnorm for Differential Binding!")
 	manorm_parser.add_argument('-c','--CONFIG', help='Config file containing [Conditions], [Peaks], and [Comparisons] using BED files', required=True)
@@ -155,9 +151,7 @@ def main():
 		for comp in comparisons:
 			c = comparisons[comp].split(",")
 			comps = [x.strip(' ') for x in c]
-			if args["p"]:
-				macs2_bgdiff.postprocess_bgdiff(comps[0], comps[1], args["gtf"])
-			elif args["b"]:
+			if args["b"]:
 				bedgraphs= get_config_args(args, ["BedGraph"])[0]
 				if args["a"]:
 					macs2_bgdiff.bgdiff(inv_conds, comps[0], comps[1], controls, "histone", bedgraphs=bedgraphs)
@@ -181,8 +175,6 @@ def main():
 					diffreps.diffReps(inv_conds, comps[0], comps[1], args["chrom"], method=args["method"], controls=None, counts=counts)
 				else:
 					diffreps.diffReps(inv_conds, comps[0], comps[1], args["chrom"], method=args["method"], controls=controls, counts=counts)
-			elif args["p"]:
-				diffreps.postprocess_diffreps(comps[0], comps[1], args["gtf"])
 			else:
 				if args["a"]:
 					diffreps.diffReps(inv_conds, comps[0], comps[1], args["chrom"], method=args["method"], controls=None)
