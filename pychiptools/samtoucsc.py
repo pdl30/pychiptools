@@ -104,7 +104,7 @@ def normalise_to_housekeeper(name, count_file):
 			line3 = line3.rstrip()
 			word3 = line3.split("\t")
 			value2 = float(word3[3])/housekeeper
-			value2 = value2*1000
+			value2 = value2*100
 			ofile.write("%s\t%d\t%d\t%f\n" % (word3[0], int(word3[1]), int(word3[2]), value2)),
 	ofile.close()
 
