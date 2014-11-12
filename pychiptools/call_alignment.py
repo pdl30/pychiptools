@@ -20,7 +20,7 @@ def main():
 	parser.add_argument('-i','--index', help='Path to bowtie index', required=True)
 	parser.add_argument('-v','--version', help='Which bowtie to use, options are 1/2. default=2', default="2")
 	parser.add_argument('-t','--threads', help='For bowtie2, how many threads to use (i.e. -p option on bowtie2', default=1, required=False)
-	parser.add_argument('-n','--samname', help='Name of sam file', required=True)
+	parser.add_argument('-n','--samname', help='Name of output sam file', required=True)
 	parser.add_argument('-o','--outdir', help='Name of results directory', required=True)
 	args = vars(parser.parse_args())
 	path = os.getcwd()
