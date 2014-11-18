@@ -148,7 +148,7 @@ def main():
 	
 	path0 = os.getcwd()
 	name = re.sub(".sam$", "", args["input"])
-	count = convert_sam_bed(name)
+	count = convert_sam_bed(name, args["p"])
 	scale = float(1000000)/int(count)
 
 	change_for_ucsc(name, chrom, args["e"])
