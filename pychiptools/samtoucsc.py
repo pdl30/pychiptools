@@ -32,7 +32,7 @@ def combine_sam_files(list_of_sams, outname):
 				new_file.write(read)
 		count += 1
 
-def convert_sam_bed(name):
+def convert_sam_bed(name, paired):
 	obed = name+"_tmp.BED"
 	outbed = open(obed, "wb")
 	samfile = pysam.Samfile(name+".sam", "r")
@@ -64,6 +64,8 @@ def convert_sam_bed(name):
 	#outbed2.saveas(name+".BED")
 	subprocess.call(command.split())
 	subprocess.call(["rm", name+"_tmp.BED"])
+	if paired:
+		count /= 2
 	return count
 	
 def change_for_ucsc(name, chromsizes, ens=False):
@@ -134,6 +136,7 @@ def bedgraphtobigwig(name, chrom, house=False, rpm=False):
 def main():
 	parser = argparse.ArgumentParser(description='Processes ChIP-seq samples to bigWig tracks.\n')
 	parser.add_argument('-i','--input', help='Input sam file', required=False)
+	parser.add_argument('-p', action='store_true', help='Use if samples are paired end. Required if using RPM normalisation', required=False)
 	parser.add_argument('-g','--genome', help='Genome the samples are aligned to, options include mm10/mm9/hg19', required=True)
 	parser.add_argument('-e', action='store_true', help='Are samples aligned to Ensembl genome?', required=False)
 	parser.add_argument('-rpm', action='store_true', help='Scale resulting bigwig to RPM', required=False)
@@ -147,10 +150,8 @@ def main():
 	name = re.sub(".sam$", "", args["input"])
 	count = convert_sam_bed(name)
 	scale = float(1000000)/int(count)
-	if args["e"]:
-		change_for_ucsc(name, chrom, ens=True)
-	else:
-		change_for_ucsc(name, chrom, ens=False)
+
+	change_for_ucsc(name, chrom, args["e"])
 
 	if args["rpm"]:
 		genomeCoverage(name, scale)
