@@ -93,22 +93,6 @@ def change_for_ucsc(name, chromsizes, ens=False):
 	else:
 		subprocess.call(["bedClip", name+".BED", chromsizes, name+"_ucsc.BED"])	
 
-def normalise_to_housekeeper(name, count_file):
-	print "==> Normalising to Housekeeper...\n"
-	with open(count_file) as f:
-		line1 = next(f)
-		line1 = line1.rstrip()
-		word1 = line1.split("\t")
-		housekeeper = int(word1[1])
-	ofile = open(name+"_norm.bedGraph", "w")
-	with open(name+"_ucsc.bedGraph") as f:
-		for line3 in f:
-			line3 = line3.rstrip()
-			word3 = line3.split("\t")
-			value2 = float(word3[3])/housekeeper
-			value2 = value2*100
-			ofile.write("%s\t%d\t%d\t%f\n" % (word3[0], int(word3[1]), int(word3[2]), value2)),
-	ofile.close()
 
 def genomeCoverage(name, scale=None):
 	if scale:
@@ -125,9 +109,7 @@ def genomeCoverage(name, scale=None):
 
 def bedgraphtobigwig(name, chrom, house=False, rpm=False):
 	print "==> Converting bedGraph to bigWig...\n"
-	if house:
-		command = ["bedGraphToBigWig", name+"_norm.bedGraph", chrom, name+"_norm.bw"]
-	elif rpm:
+	if rpm:
 		command = ["bedGraphToBigWig", name+"_rpm.bedGraph", chrom, name+"_rpm.bw"]
 	else:
 		command = ["bedGraphToBigWig", name+"_ucsc.bedGraph", chrom, name+".bw"]
@@ -140,9 +122,6 @@ def main():
 	parser.add_argument('-g','--genome', help='Genome the samples are aligned to, options include mm10/mm9/hg19', required=True)
 	parser.add_argument('-e', action='store_true', help='Are samples aligned to Ensembl genome?', required=False)
 	parser.add_argument('-rpm', action='store_true', help='Scale resulting bigwig to RPM', required=False)
-	parser.add_argument('-s','--scale', help='Housekeeper normalisation. Input file is HTSEQ-count file containing gene for normalisation on first line', required=False)
-#	parser.add_argument('-r','--COMBINE', help='This takes 2 or more sam files and combines them and processes them to bigwigs. Output name is specified by -o', nargs="+", required=False)
-	#parser.add_argument('-o','--OUTNAME', help='Only use if using the option -r! This will create a directory and files with this name.', required=False)
 	args = vars(parser.parse_args())
 	chrom = pkg_resources.resource_filename('pychiptools', 'data/{}.chrom.sizes'.format(args["genome"]))
 	
@@ -156,10 +135,6 @@ def main():
 	if args["rpm"]:
 		genomeCoverage(name, scale)
 		bedgraphtobigwig(name, chrom, rpm=True)	
-	elif args["scale"]:
-		genomeCoverage(name)
-		normalise_to_housekeeper(name, args["scale"])
-		bedgraphtobigwig(name, chrom, house=True)
 	else:
 		genomeCoverage(name)
 		bedgraphtobigwig(name, chrom)
