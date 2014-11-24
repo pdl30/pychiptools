@@ -79,6 +79,9 @@ def main():
 	fimo_parser.add_argument('-i','--INPUT', help='Input motifs in meme format', required=False)
 	fimo_parser.add_argument('-f','--FASTA', help='Reference fasta', required=False)
 	fimo_parser.add_argument('-o', '--OUTDIR', help='Output directory', required=False)
+	if len(sys.argv)==1:
+		parser.print_help()
+		sys.exit(1)
 	args = vars(parser.parse_args())
 
 	if args["subparser_name"] == "meme":

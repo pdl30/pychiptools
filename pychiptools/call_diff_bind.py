@@ -118,6 +118,9 @@ def main():
 
 	pepr_parser = subparsers.add_parser('pepr', help="Runs Pepr Differential binding analysis. Needs Reps and review of script")
 	pepr_parser.add_argument('-c','--CONFIG', help='Config file containing [Conditions] and [Comparisons] using BED files', required=True)
+	if len(sys.argv)==1:
+		parser.print_help()
+		sys.exit(1)
 	args = vars(parser.parse_args())
 
 	#Most of these are slow so must figure out how to run everything together!

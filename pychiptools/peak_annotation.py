@@ -209,6 +209,9 @@ def main():
 
 	chip_parser.add_argument('-p', '--peak', help='Peak file', required=True)
 	chip_parser.add_argument('-o', '--output', help='Output prefix', required=True)
+	if len(sys.argv)==1:
+		parser.print_help()
+		sys.exit(1)
 	args = vars(parser.parse_args())
 	if args["subparser_name"] == "custom":
 		starts, chrom = read_annotation(args["gtf"])

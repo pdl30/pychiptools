@@ -91,6 +91,9 @@ def main():
 	peakrang_parser = subparsers.add_parser('peakranger', help="Runs PeakRanger CCAT", parents=[base_subparser])
 	peakrang_parser.add_argument('-q','--qvalue', help='Qvalue to use. Must be float! e.g. 0.05', required=False, type=float)
 	peakrang_parser.add_argument('-threads', help='threads, default=1', default=1, required=False)
+	if len(sys.argv)==1:
+		parser.print_help()
+		sys.exit(1)
 	args = vars(parser.parse_args())
 
 	head, tail = os.path.split(args["sample"])

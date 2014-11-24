@@ -22,6 +22,9 @@ def main():
 	parser.add_argument('-t','--threads', help='For bowtie2, how many threads to use (i.e. -p option on bowtie2', default=1, required=False)
 	parser.add_argument('-n','--samname', help='Name of output sam file', required=True)
 	parser.add_argument('-o','--outdir', help='Name of results directory', required=True)
+	if len(sys.argv)==1:
+		parser.print_help()
+		sys.exit(1)
 	args = vars(parser.parse_args())
 	path = os.getcwd()
 	if os.path.isdir(args["outdir"]):
