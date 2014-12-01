@@ -21,4 +21,4 @@ This will install the scripts in the pychiptools/scripts directory. For more inf
 - pychip_peak_anno.py -> Peak annotation using chipseqanno, homer and also a custom annotation
 - pychip_motifs.py -> Denovo motif discovery implemented using MEME and HOMER. Also motif search using FIMO
 - pychip_diff_bind.py -> Differential binding implemented using a variety of programs. 
-
+- pychip_download.py -> Tool for downloading samples from GEO
