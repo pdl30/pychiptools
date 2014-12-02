@@ -13,20 +13,26 @@ import subprocess
 import sys, re, os
 
 def paired_bowtie(fastq1, fastq2, name, index, outdir):
-	sam1_o = open(outdir+"/"+name+".sam", "wb")
+	sam1_o = outdir + "/" + "tmp.sam"
 	report = outdir+'/'+name+'_report.txt'
 	report1_o = open(report, "wb")
 	uniq = "bowtie -m 2 -v 1 --best --strata --seed 0 --sam {0} -1 {1} -2 {2}".format(index, fastq1, fastq2)
 	p = subprocess.Popen(uniq.split(), stdout = sam1_o, stderr=report1_o)
 	p.communicate()
+	sam2_o = open(outdir+"/"+name+".sam", "wb")
+	grep_paired_unique(sam1_o, sam2_o)
+	os.remove(sam1_o)
 
 def single_bowtie(fastq, name, index, outdir):
-	sam1_o = open(outdir+"/"+name+".sam", "wb")
+	sam1_o = outdir + "/" + "tmp.sam"
 	report = outdir+'/'+name+'_report.txt'
 	report1_o = open(report, "wb")
 	uniq = "bowtie -m 2 -v 1 --best --strata --seed 0 --sam {0} {1}".format(index, fastq)
 	p = subprocess.Popen(uniq.split(), stdout = sam1_o, stderr=report1_o)
 	p.communicate()
+	sam2_o = outdir+"/"+name+".sam"
+	grep_single_unique(sam1_o, sam2_o)
+	os.remove(sam1_o)
 
 def grep_paired_unique(samfile, outfile):
 	output=  open(outfile, "w")
@@ -65,9 +71,8 @@ def paired_bowtie2(fastq1, fastq2, name, index, outdir, threads):
 	uniq = "bowtie2 -p {4} -k 2 -N 1 --mm --no-mixed --no-discordant -x {0} -1 {1} -2 {2} -S {3}/tmp.sam".format(index, fastq1, fastq2, outdir, threads)
 	p = subprocess.Popen(uniq.split(), stderr=report1_o)
 	p.communicate()
-	grep_paired_unique(outdir+"/tmp.sam", outdir+"/tmp.unique.sam")
-	subprocess.call(["mv", outdir+"/tmp.unique.sam",  outdir+'/'+name+'.sam'])
-	subprocess.call(["rm", outdir+"/tmp.sam"])
+	grep_paired_unique(outdir+"/tmp.sam", outdir+'/'+name+'.sam')
+	os.remove(outdir+"/tmp.sam")
 
 def single_bowtie2(fastq, name, index, outdir, threads):
 	report = outdir+'/'+name+'_report.txt'
@@ -75,6 +80,5 @@ def single_bowtie2(fastq, name, index, outdir, threads):
 	uniq = "bowtie2 -p {3} -k 2 -N 1 --mm  -x {0} -U {1} -S {2}/tmp.sam".format(index, fastq, outdir, threads)
 	p = subprocess.Popen(uniq.split(), stderr=report1_o)
 	p.communicate()
-	grep_single_unique(outdir+"/tmp.sam", outdir+"/tmp.unique.sam")
-	subprocess.call(["mv", outdir+"/tmp.unique.sam",  outdir+'/'+name+'.sam'])
-	subprocess.call(["rm", outdir+"/tmp.sam"])
+	grep_single_unique(outdir+"/tmp.sam", outdir+'/'+name+'.sam')
+	os.remove(outdir+"/tmp.sam")
