@@ -70,28 +70,33 @@ def downloader(gsm):
 		os.remove(sra)
 	#Catting everything together
 	fq1s = [f for f in os.listdir(new_path) if f.startswith("SRR") and f.endswith("_1.fastq")]
-	if fqs:
+	if fq1s:
 		command = "cat"
-		for fq in fqs:
+		for fq in fq1s:
 			command += " {}".format(fq)
 		command += " > {}_1.fastq".format(gsm)
 		subprocess.call(command, shell=True)
-		fq1s = [f for f in os.listdir(new_path) if f.startswith("SRR") and f.endswith("_2.fastq")]
+		fq2s = [f for f in os.listdir(new_path) if f.startswith("SRR") and f.endswith("_2.fastq")]
 		command = "cat"
-		for fq in fqs:
+		for fq in fq2s:
 			command += " {}".format(fq)
 		command += " > {}_2.fastq".format(gsm)
 		subprocess.call(command, shell=True)
+		for fq in fq1s:
+			os.remove(fq)
+		for fq in fq2s:
+			os.remove(fq)
 	else:
-		fq1s = [f for f in os.listdir(new_path) if f.startswith("SRR") and f.endswith(".fastq")]
+		fqs = [f for f in os.listdir(new_path) if f.startswith("SRR") and f.endswith(".fastq")]
 		command = "cat"
 		for fq in fqs:
 			command += " {}".format(fq)
 		command += " > {}.fastq".format(gsm)
 		subprocess.call(command, shell=True)
+		for fq in fqs:
+			os.remove(fq)
 	#Remove old SRR fastqs
-	for fq in fqs:
-		os.remove(fq)
+	
 	os.chdir(old_path)
 
 def download_function(args):
