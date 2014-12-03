@@ -57,11 +57,7 @@ def convert_sam_bed(name, paired):
 		outbed.write("{}\t{}\t{}\t{}\t0\t{}\n".format(samfile.getrname(read.tid), new_start, new_end, read.qname, strand)),
 
 	outbed.close()
-	#inbed = pybedtools.BedTool(name+"_tmp.BED")
-	#New sort:
 	command = "sort -k1,1 -k2,2g -o {} {}".format(name+".BED", name+"_tmp.BED")
-	#outbed2 = inbed.sort()
-	#outbed2.saveas(name+".BED")
 	subprocess.call(command.split())
 	subprocess.call(["rm", name+"_tmp.BED"])
 	if paired:
@@ -115,8 +111,22 @@ def bedgraphtobigwig(name, chrom, house=False, rpm=False):
 		command = ["bedGraphToBigWig", name+"_ucsc.bedGraph", chrom, name+".bw"]
 	subprocess.call(command)
 
+def ConfigSectionMap(Config, section):
+	dict1 = {}
+	options = Config.options(section)
+	for option in options:
+		try:
+			dict1[option] = Config.get(section, option)
+			if dict1[option] == -1:
+				DebugPrint("skip: %s" % option)
+		except:
+			print("exception on %s!" % option)
+			dict1[option] = None
+	return dict1
+	
 def main():
-	parser = argparse.ArgumentParser(description='Processes ChIP-seq samples to bigWig tracks.\n')
+	parser = argparse.ArgumentParser(description='Processes ChIP-seq samples to bigWig tracks. Use either input or config file\n')
+	parser.add_argument('-c', '--config', help='Contains [Conditions] with bam files as keys.', required=False)
 	parser.add_argument('-i','--input', help='Input sam file', required=False)
 	parser.add_argument('-p', action='store_true', help='Use if samples are paired end. Required if using RPM normalisation', required=False)
 	parser.add_argument('-g','--genome', help='Genome the samples are aligned to, options include mm10/mm9/hg19', required=True)
@@ -129,15 +139,37 @@ def main():
 	chrom = pkg_resources.resource_filename('pychiptools', 'data/{}.chrom.sizes'.format(args["genome"]))
 	
 	path0 = os.getcwd()
-	name = re.sub(".sam$", "", args["input"])
-	count = convert_sam_bed(name, args["p"])
-	scale = float(1000000)/int(count)
 
-	change_for_ucsc(name, chrom, args["e"])
+	if args["input"]:
+		name = re.sub(".sam$", "", args["input"])
+		count = convert_sam_bed(name, args["p"])
+		scale = float(1000000)/int(count)
 
-	if args["rpm"]:
-		genomeCoverage(name, args["genome"], scale)
-		bedgraphtobigwig(name, chrom, rpm=True)	
-	else:
-		genomeCoverage(name, args["genome"])
-		bedgraphtobigwig(name, chrom)
+		change_for_ucsc(name, chrom, args["e"])
+
+		if args["rpm"]:
+			genomeCoverage(name, args["genome"], scale)
+			bedgraphtobigwig(name, chrom, rpm=True)	
+		else:
+			genomeCoverage(name, args["genome"])
+			bedgraphtobigwig(name, chrom)
+
+	elif args["config"]:
+		Config = ConfigParser.ConfigParser()
+		Config.optionxform = str
+		Config.read(args["config"])
+
+		conditions = ConfigSectionMap("Conditions", Config)
+		for key in conditions:
+			name = re.sub(".sam$", "", key)
+			count = convert_sam_bed(name, args["p"])
+			scale = float(1000000)/int(count)
+
+			change_for_ucsc(name, chrom, args["e"])
+
+			if args["rpm"]:
+				genomeCoverage(name, args["genome"], scale)
+				bedgraphtobigwig(name, chrom, rpm=True)	
+			else:
+				genomeCoverage(name, args["genome"])
+				bedgraphtobigwig(name, chrom)
