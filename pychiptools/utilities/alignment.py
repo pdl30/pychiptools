@@ -13,26 +13,28 @@ import subprocess
 import sys, re, os
 
 def paired_bowtie(fastq1, fastq2, name, index, outdir):
-	sam1_o = outdir + "/" + "tmp.sam"
+	sam1 = outdir + "/" + "tmp.sam"
+	sam1_o = open(sam1, "wb")
 	report = outdir+'/'+name+'_report.txt'
 	report1_o = open(report, "wb")
 	uniq = "bowtie -m 2 -v 1 --best --strata --seed 0 --sam {0} -1 {1} -2 {2}".format(index, fastq1, fastq2)
 	p = subprocess.Popen(uniq.split(), stdout = sam1_o, stderr=report1_o)
 	p.communicate()
-	sam2_o = open(outdir+"/"+name+".sam", "wb")
-	grep_paired_unique(sam1_o, sam2_o)
-	os.remove(sam1_o)
+	sam2 = outdir+"/"+name+".sam"
+	grep_paired_unique(sam1, sam2)
+	os.remove(sam1)
 
 def single_bowtie(fastq, name, index, outdir):
-	sam1_o = outdir + "/" + "tmp.sam"
+	sam1 = outdir + "/" + "tmp.sam"
+	sam1_o = open(sam1, "wb")
 	report = outdir+'/'+name+'_report.txt'
 	report1_o = open(report, "wb")
 	uniq = "bowtie -m 2 -v 1 --best --strata --seed 0 --sam {0} {1}".format(index, fastq)
 	p = subprocess.Popen(uniq.split(), stdout = sam1_o, stderr=report1_o)
 	p.communicate()
-	sam2_o = outdir+"/"+name+".sam"
-	grep_single_unique(sam1_o, sam2_o)
-	os.remove(sam1_o)
+	sam2 = outdir+"/"+name+".sam"
+	grep_single_unique(sam1, sam2)
+	os.remove(sam1)
 
 def grep_paired_unique(samfile, outfile):
 	output=  open(outfile, "w")

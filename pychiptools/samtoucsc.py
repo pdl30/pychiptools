@@ -94,7 +94,7 @@ def change_for_ucsc(name, chromsizes, ens=False):
 		subprocess.call(["bedClip", name+".BED", chromsizes, name+"_ucsc.BED"])	
 
 
-def genomeCoverage(name, scale=None):
+def genomeCoverage(name, genome, scale=None):
 	if scale:
 		outg2 = name+"_rpm.bedGraph"
 	else:
@@ -102,9 +102,9 @@ def genomeCoverage(name, scale=None):
 	inbed = pybedtools.BedTool(name+"_ucsc.BED")
 	print "==> Creating bedGraph...\n"
 	if scale:
-		outcov = inbed.genome_coverage(bg=True, genome='mm10', scale=scale)
+		outcov = inbed.genome_coverage(bg=True, genome=genome, scale=scale)
 	else:
-		outcov = inbed.genome_coverage(bg=True, genome='mm10')
+		outcov = inbed.genome_coverage(bg=True, genome=genome)
 	outcov.saveas(outg2)
 
 def bedgraphtobigwig(name, chrom, house=False, rpm=False):
@@ -136,8 +136,8 @@ def main():
 	change_for_ucsc(name, chrom, args["e"])
 
 	if args["rpm"]:
-		genomeCoverage(name, scale)
+		genomeCoverage(name, args["genome"], scale)
 		bedgraphtobigwig(name, chrom, rpm=True)	
 	else:
-		genomeCoverage(name)
+		genomeCoverage(name, args["genome"])
 		bedgraphtobigwig(name, chrom)
