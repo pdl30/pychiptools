@@ -13,6 +13,8 @@ import sys, os, re
 import argparse
 
 def run_macs2(sample, genome, pvalue, control, histone, qvalue=None):
+	#In new version, could have multiple samples/controls??
+	#Dealing with names could be tough for these samples
 	name = re.sub(".BED", "", sample, re.IGNORECASE)
 	if histone==False:
 		if not control:

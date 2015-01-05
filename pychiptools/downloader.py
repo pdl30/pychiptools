@@ -63,6 +63,7 @@ def downloader(gsm):
 				sra = sra_path[1]
 				download3 = "wget -r -c --no-verbose -N -nd ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByExp/sra/{}".format(sra)
 				subprocess.call(download3, shell=True)
+				
 	sras = [f for f in os.listdir(new_path) if f.endswith(".sra")]
 	for sra in sras:
 		command0 = "fastq-dump --split-3 {}".format(sra)

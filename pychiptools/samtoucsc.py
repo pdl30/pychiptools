@@ -16,6 +16,7 @@ import argparse
 import operator
 import pkg_resources
 import pychiptools
+import ConfigParser
 
 def combine_sam_files(list_of_sams, outname):
 	count = 0
