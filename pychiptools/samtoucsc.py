@@ -160,7 +160,7 @@ def main():
 		Config.optionxform = str
 		Config.read(args["config"])
 
-		conditions = ConfigSectionMap("Conditions", Config)
+		conditions = ConfigSectionMap(Config, "Conditions")
 		for key in conditions:
 			name = re.sub(".sam$", "", key)
 			count = convert_sam_bed(name, args["p"])
