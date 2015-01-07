@@ -31,7 +31,7 @@ def ConfigSectionMap(section, Config):
 	return dict1
 
 def gse_download(gse):
-	gsm_samples = defaultdict(list)
+	gsm_samples = {}
 	download2 = "wget -c -nv -q 'http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc='{0}'&targ=self&view=quick&form=text&token=_blank' -O tmp/{0}.soft".format(gse)
 	subprocess.call(download2, shell=True)
 	with open("tmp/{}.soft".format(gse)) as f:
@@ -40,7 +40,7 @@ def gse_download(gse):
 			#GSM Samples
 			if line.startswith("!Series_sample_id = "):
 				gsm = re.sub("!Series_sample_id = ", "", line)
-				gsm_samples[gse].append(gsm)
+				gsm_samples[gsm] = 1
 	return gsm_samples
 
 def downloader(gsm):
