@@ -89,6 +89,7 @@ def change_for_ucsc(name, chromsizes, ens=False):
 		subprocess.call(["rm", name+"_tmp1.BED"])
 	else:
 		subprocess.call(["bedClip", name+".BED", chromsizes, name+"_ucsc.BED"])	
+		os.remove(name+".BED")
 
 
 def genomeCoverage(name, genome, scale=None):
