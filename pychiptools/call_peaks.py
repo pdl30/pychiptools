@@ -70,34 +70,38 @@ def function3(args):
 def main():
 	parser = argparse.ArgumentParser(description='Programs included are MACS2 and SICER\n')
 	subparsers = parser.add_subparsers(help='Programs included',dest="subparser_name")
-
-	#Parent Subparser
-	base_subparser = argparse.ArgumentParser(add_help=False)
-	base_subparser.add_argument('-s','--sample', help='Sample BED file', required=True)
-	base_subparser.add_argument('-c','--control', help='Control BED file - Optional', required=False)
-	base_subparser.add_argument('-g','--genome', help='Genome aligned to, options include mm10/mm9/hg19', required=True)
-
-	macs2_parser = subparsers.add_parser('macs2', help="Runs MACS2 on ChIPseq samples. If no pvalue specified, will run 1e-3,4,5,6,7,9,12,15 pvalues concurrently!", parents=[base_subparser])
+	
+	macs2_parser = subparsers.add_parser('macs2', help="Runs MACS2 on ChIPseq samples. If no pvalue specified, will run 1e-3,4,5,6,7,9,12,15 pvalues concurrently!")
+	macs2_parser.add_argument('-s','--sample', help='Sample BED file', required=True, nargs="+")
+	macs2_parser.add_argument('-c','--control', help='Control BED file - Optional', required=False, nargs="+")
+	macs2_parser.add_argument('-g','--genome', help='Genome aligned to, options include mm10/mm9/hg19', required=True)
 	macs2_parser.add_argument('-p','--pvalue', help='Pvalue to use, optional. Must be integer! e.g. specifying 5 will use 1e-5', required=False, type=int)
 	macs2_parser.add_argument('-q','--qvalue', help='Qvalue to use, optional. Must be float! e.g. 0.05', required=False, type=float)
+	macs2_parser.add_argument('-n','--name', help='Output name', required=True)
 	macs2_parser.add_argument('-b', action='store_true', help='Are samples histones', required=False)
 	
-	sicer_parser = subparsers.add_parser('sicer', help="Runs SICER", parents=[base_subparser])
+	sicer_parser = subparsers.add_parser('sicer', help="Runs SICER")
+	sicer_parser.add_argument('-s','--sample', help='Sample BED file', required=True)
+	sicer_parser.add_argument('-c','--control', help='Control BED file - Optional', required=False)
+	sicer_parser.add_argument('-g','--genome', help='Genome aligned to, options include mm10/mm9/hg19', required=True)
 	sicer_parser.add_argument('-q','--qvalue', help='Qvalue to use, optional. Must be float! e.g. 0.05', required=False, type=float)
 	sicer_parser.add_argument('-w', '--window_size', help='SICER window_size, default=200', default=200, required=False)
 	sicer_parser.add_argument('-f', '--fragsize', help='SICER fragsize, default=150', default=150, required=False)
 	sicer_parser.add_argument('-gS', '--gapsize', help='SICER gapsize, default=400', default=400, required=False)
 
-	peakrang_parser = subparsers.add_parser('peakranger', help="Runs PeakRanger CCAT", parents=[base_subparser])
+	peakrang_parser = subparsers.add_parser('peakranger', help="Runs PeakRanger CCAT")
+	peakrang_parser.add_argument('-s','--sample', help='Sample BED file', required=True, nargs="+")
+	peakrang_parser.add_argument('-c','--control', help='Control BED file - Optional', required=False, nargs="+")
+	peakrang_parser.add_argument('-g','--genome', help='Genome aligned to, options include mm10/mm9/hg19', required=True)
 	peakrang_parser.add_argument('-q','--qvalue', help='Qvalue to use. Must be float! e.g. 0.05', required=False, type=float)
 	peakrang_parser.add_argument('-threads', help='threads, default=1', default=1, required=False)
 	if len(sys.argv)==1:
 		parser.print_help()
 		sys.exit(1)
 	args = vars(parser.parse_args())
-
-	head, tail = os.path.split(args["sample"])
-	name = re.sub(".BED", "", args["sample"], re.IGNORECASE)
+	#Needs revision!!
+#	head, tail = os.path.split(args["sample"])
+#	name = re.sub(".BED", "", args["sample"], re.IGNORECASE)
 
 	if args["genome"] == "mm10":
 		genome = "mm"
@@ -113,35 +117,35 @@ def main():
 
 	if args["subparser_name"]=="macs2":
 		if args["pvalue"]:
-			name = "{}_p1e-{}".format(name, args["pvalue"])
+			name = "{}_p1e-{}".format(args["name"], args["pvalue"])
 			if args["b"]:
 				if args["control"]:
-					macs2.run_macs2(args["sample"], genome, args["pvalue"], args["control"], True)
+					macs2.run_macs2(args["sample"], args["name"], genome, args["pvalue"], args["control"], True)
 				else:
-					macs2.run_macs2(args["sample"], genome, args["pvalue"], None, True)
+					macs2.run_macs2(args["sample"], args["name"], genome, args["pvalue"], None, True)
 				macs2.post_process_histone_peaks(name, chrom)
 			else:
 				if args["control"]:
-					macs2.run_macs2(args["sample"], genome, args["pvalue"], args["control"], False)
+					macs2.run_macs2(args["sample"], args["name"], genome, args["pvalue"], args["control"], False)
 				else:
-					macs2.run_macs2(args["sample"], genome, args["pvalue"], None, False)
+					macs2.run_macs2(args["sample"], args["name"], genome, args["pvalue"], None, False)
 
 				macs2.convert_peaks_to_bed(name)
 				macs2.post_process_peaks_for_ucsc(name, chrom)
 
 		elif args["qvalue"]:
-			name = "{}_q1e-{}".format(name, args["qvalue"])
+			name = "{}_q1e-{}".format(args["name"], args["qvalue"])
 			if args["b"]:
 				if args["control"]:
-					macs2.run_macs2(args["sample"], genome, None, args["control"], True, qvalue=args["qvalue"])
+					macs2.run_macs2(args["sample"], args["name"], genome, None, args["control"], True, qvalue=args["qvalue"])
 				else:
-					macs2.run_macs2(args["sample"], genome, None, None,  True, qvalue=args["qvalue"])
+					macs2.run_macs2(args["sample"], args["name"], genome, None, None,  True, qvalue=args["qvalue"])
 				macs2.post_process_histone_peaks(name, chrom)
 			else:
 				if args["control"]:
-					macs2.run_macs2(args["sample"], genome, None, args["control"], False, qvalue=args["qvalue"])
+					macs2.run_macs2(args["sample"], args["name"], genome, None, args["control"], False, qvalue=args["qvalue"])
 				else:
-					macs2.run_macs2(args["sample"], genome, None, None, False, qvalue=args["qvalue"])
+					macs2.run_macs2(args["sample"], args["name"], genome, None, None, False, qvalue=args["qvalue"])
 
 				macs2.convert_peaks_to_bed(name)
 				macs2.post_process_peaks_for_ucsc(name, chrom)
@@ -150,22 +154,26 @@ def main():
 			pvalues = [3,4,5,6,7,9,12,15]
 			name_list = []
 			for p in pvalues:
-				new_name = "{}_p1e-{}".format(name, p)
+				new_name = "{}_p1e-{}".format(args["name"], p)
 				name_list.append(new_name)
 
 			pool = Pool(8)
 			if args["b"]:
 				if args["control"]:
-					pool.map(function1, itertools.izip(itertools.repeat(args["sample"]), itertools.repeat(genome), pvalues, itertools.repeat(args["control"]), itertools.repeat(args["b"])))
+					pool.map(function1, itertools.izip(itertools.repeat(args["sample"]), itertools.repeat(args["name"]), itertools.repeat(genome), 
+						pvalues, itertools.repeat(args["control"]), itertools.repeat(args["b"])))
 				else:
-					pool.map(function1, itertools.izip(itertools.repeat(args["sample"]), itertools.repeat(genome), pvalues, itertools.repeat(None), itertools.repeat(args["b"])))
+					pool.map(function1, itertools.izip(itertools.repeat(args["sample"]), itertools.repeat(args["name"]), itertools.repeat(genome), 
+						pvalues, itertools.repeat(None), itertools.repeat(args["b"])))
 				pool.close()
 				pool.join()
 			else:
 				if args["control"]:
-					pool.map(function1, itertools.izip(itertools.repeat(args["sample"]), itertools.repeat(genome), pvalues, itertools.repeat(args["control"]), itertools.repeat(args["b"])))
+					pool.map(function1, itertools.izip(itertools.repeat(args["sample"]), itertools.repeat(args["name"]), itertools.repeat(genome), 
+						pvalues, itertools.repeat(args["control"]), itertools.repeat(args["b"])))
 				else:
-					pool.map(function1, itertools.izip(itertools.repeat(args["sample"]), itertools.repeat(genome), pvalues, itertools.repeat(None), itertools.repeat(args["b"])))
+					pool.map(function1, itertools.izip(itertools.repeat(args["sample"]), itertools.repeat(args["name"]), itertools.repeat(genome), 
+						pvalues, itertools.repeat(None), itertools.repeat(args["b"])))
 			
 				pool.close()
 				pool.join()

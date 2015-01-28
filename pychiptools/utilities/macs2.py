@@ -12,42 +12,43 @@ import subprocess
 import sys, os, re
 import argparse
 
-def run_macs2(sample, genome, pvalue, control, histone, qvalue=None):
+def run_macs2(sample, name, genome, pvalue, control, histone, qvalue=None):
 	#In new version, could have multiple samples/controls??
 	#Dealing with names could be tough for these samples
-	name = re.sub(".BED", "", sample, re.IGNORECASE)
+	samples = " ".join(sample)
+	controls = " ".join(control)
 	if histone==False:
 		if not control:
 			if pvalue:
 				name = "{}_p1e-{}".format(name, pvalue)
-				command = "macs2 callpeak -t {} -g {} -n {} -f BED -p 1e-{} --nomodel".format(sample, genome, name, pvalue)
+				command = "macs2 callpeak -t {} -g {} -n {} -f BED -p 1e-{} --nomodel".format(samples, genome, name, pvalue)
 			else:
 				name = "{}_q1e-{}".format(name, qvalue)
-				command = "macs2 callpeak -t {} -g {} -n {} -f BED -q {} --nomodel".format(sample, genome, name, qvalue)
+				command = "macs2 callpeak -t {} -g {} -n {} -f BED -q {} --nomodel".format(samples, genome, name, qvalue)
 		else:
 			# WITH CONTROL
 			if pvalue:
 				name = "{}_p1e-{}".format(name, pvalue)
-				command = "macs2 callpeak -t {} -c {} -g {} -n {} -f BED -p 1e-{} --nomodel".format(sample, control, genome, name, pvalue)
+				command = "macs2 callpeak -t {} -c {} -g {} -n {} -f BED -p 1e-{} --nomodel".format(samples, controls, genome, name, pvalue)
 			else:
 				name = "{}_q1e-{}".format(name, qvalue)
-				command = "macs2 callpeak -t {} -c {} -g {} -n {} -f BED -q {} --nomodel".format(sample, control, genome, name, qvalue)
+				command = "macs2 callpeak -t {} -c {} -g {} -n {} -f BED -q {} --nomodel".format(samples, controls, genome, name, qvalue)
 	else:
 		if not control:
 			if pvalue:
 				name = "{}_p1e-{}".format(name, pvalue)
-				command = "macs2 callpeak -t {} -g {} -n {} -f BED -p 1e-{} --broad --nomodel".format(sample, genome, name, pvalue)
+				command = "macs2 callpeak -t {} -g {} -n {} -f BED -p 1e-{} --broad --nomodel".format(samples, genome, name, pvalue)
 			else:
 				name = "{}_q1e-{}".format(name, qvalue)
-				command = "macs2 callpeak -t {} -g {} -n {} -f BED -q {} --broad --nomodel".format(sample, genome, name, qvalue)
+				command = "macs2 callpeak -t {} -g {} -n {} -f BED -q {} --broad --nomodel".format(samples, genome, name, qvalue)
 		else:
 			# WITH CONTROL
 			if pvalue:
 				name = "{}_p1e-{}".format(name, pvalue)
-				command = "macs2 callpeak -t {} -c {} -g {} -n {} -f BED -p 1e-{} --broad --nomodel".format(sample, control, genome, name, pvalue)
+				command = "macs2 callpeak -t {} -c {} -g {} -n {} -f BED -p 1e-{} --broad --nomodel".format(samples, controls, genome, name, pvalue)
 			else:
 				name = "{}_q1e-{}".format(name, qvalue)
-				command = "macs2 callpeak -t {} -c {} -g {} -n {} -f BED -q {} --broad --nomodel".format(sample, control, genome, name, qvalue)
+				command = "macs2 callpeak -t {} -c {} -g {} -n {} -f BED -q {} --broad --nomodel".format(samples, controls, genome, name, qvalue)
 
 	print command
 	p = subprocess.Popen(command.split())
