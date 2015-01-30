@@ -147,8 +147,8 @@ def main():
 				else:
 					macs2.run_macs2(args["sample"], args["name"], genome, None, None, False, qvalue=args["qvalue"])
 
-				macs2.convert_peaks_to_bed(name)
-				macs2.post_process_peaks_for_ucsc(name, chrom)
+			macs2.convert_peaks_to_bed(name)
+			macs2.post_process_peaks_for_ucsc(name, chrom)
 		else:
 			#Run all Pvalues
 			pvalues = [3,4,5,6,7,9,12,15]
