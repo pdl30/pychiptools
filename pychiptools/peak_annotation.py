@@ -160,8 +160,8 @@ def chippeakanno(peaks, output_prefix):
 	rscript += "annotatedPeaktrans = annotatePeakInBatch(peaks, AnnotationData=TSS.mouse.NCBIM38, FeatureLocForDistance='middle', PeakLocForDistance='middle', output='shortestDistance')\n"
 	rscript += "annotatedPeaktss <- as.data.frame(annotatedPeaktss)\n"
 	rscript += "annotatedPeaktrans <- as.data.frame(annotatedPeaktrans)\n"
-	rscript += "C1BM <- getBM(c('ensembl_gene_id', 'external_gene_id','description', 'gene_biotype'),filters = 'ensembl_gene_id', values = annotatedPeaktrans$feature, mart = ensembl)\n"
-	rscript += "C2BM <- getBM(c('ensembl_gene_id', 'external_gene_id','description', 'gene_biotype'),filters = 'ensembl_gene_id', values = annotatedPeaktss$feature, mart = ensembl)\n"
+	rscript += "C1BM <- getBM(c('ensembl_gene_id', 'external_gene_name','description', 'gene_biotype'),filters = 'ensembl_gene_id', values = annotatedPeaktrans$feature, mart = ensembl)\n"
+	rscript += "C2BM <- getBM(c('ensembl_gene_id', 'external_gene_name','description', 'gene_biotype'),filters = 'ensembl_gene_id', values = annotatedPeaktss$feature, mart = ensembl)\n"
 	rscript += "annotrans <- cbind(annotatedPeaktrans, C1BM[match(annotatedPeaktrans$feature, C1BM[,1]), 2:4])\n"
 	rscript += "annotss <- cbind(annotatedPeaktss, C2BM[match(annotatedPeaktss$feature, C2BM[,1]), 2:4])\n"
 	rscript += "write.table(annotss, file='{}_nearest_tss.tsv', sep='\\t', quote=F, row.names=F)\n".format(output_prefix)
@@ -194,7 +194,7 @@ def main():
 	parser = argparse.ArgumentParser(description='Annotation of Peaks.\n')
 	subparsers = parser.add_subparsers(help='Programs included',dest="subparser_name")
 	custom_parser = subparsers.add_parser('custom', help="Runs custom Annotation")
-	homer_parser = subparsers.add_parser('homer', help="Runs GFOLD")
+	homer_parser = subparsers.add_parser('homer', help="Runs annotatePeaks.pl")
 	chip_parser = subparsers.add_parser('chipanno', help="Runs chippeakanno")
 	custom_parser.add_argument('-p', '--peak', help='Peak file in ensembl format', required=False)
 	custom_parser.add_argument('-g', '--gtf', help='GTF file', required=False)
