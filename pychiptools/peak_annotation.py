@@ -30,9 +30,9 @@ def read_annotation(gtf):
 			if feature.name not in gene_info:
 				chrom[feature.name] = feature.iv.chrom
 				gene_info[feature.name] = []
-				gene_info[feature.name].append(feature.iv.start)
+				gene_info[feature.name].append(feature.iv.start_d_as_pos)
 			else:
-				gene_info[feature.name].append(feature.iv.start)
+				gene_info[feature.name].append(feature.iv.start_d_as_pos)
 	return gene_info, chrom
 
 def find_key(input_dict, value):
@@ -52,23 +52,23 @@ def closest_tss(peak_data, starts, chrom, outname):
 		mid = int(peak_data[peak][2]) - int(peak_data[peak][1])
 		mid = mid/2
 		middle = int(peak_data[peak][1])+int(mid)
-		min_dis = 1000000000
+		min_dis = 1000000000000
 		status = ""
-		for gene in starts:
-			#print gene, starts[gene]
-			if chrom[gene] == peak_data[peak][0]:
-				unique_starts = f7(starts[gene])
-				for start in unique_starts:
-					distance = abs(starts[gene] - middle)
-					if distance < min_dis:
-						if distance < 0:
+		for gene in starts: #Loop over TSS's
+			if chrom[gene] == peak_data[peak][0]: #Check TSS chromos agree
+				unique_starts = f7(starts[gene]) #Get unique of Gene starts, maybe do this beforehand?
+				for start in unique_starts:  #Loop over gene start
+					distance = start.pos - middle 
+					if abs(distance) < min_dis: #Check distance against smallest
+						min_dis = abs(distance)
+						if distance < 0: 
 							status= "upstream"
 						else:
 							status = "downstream"
-						tss_anno[key] = gene, distance, status
+						tss_anno[peak] = gene, distance, status
 	output = open(outname, "w")
 	for key in tss_anno:
-		output.write("{}\t{}\t{}\t{}\t{}\t{}\n".format(peak_data[key][0], peak_data[key][1], peak_data[key][2], tss_anno[key][0],tss_anno[key][1],tss_anno[key][2])),
+		output.write("{}\t{}\t{}\t{}\t{}\t{}\n".format(peak_data[key][0], peak_data[key][1], peak_data[key][2], tss_anno[key][0], tss_anno[key][1])),
 
 def homer_annotation(peak, genome, output, gtf=None):
 	if gtf:
@@ -84,9 +84,10 @@ def closestbed(peak, gtf):
 	subprocess.call(command, shell=True)
 	return f.name
 
-def parse_closest(gtf, outname):
+def parse_closest(gtf, outname, anno=False, genome=None):
 	output = open(outname, "w")
-	transcripts = []
+	remove_reps = defaultdict(list)
+	result = {}
 	with open(gtf) as f:
 		for line in f:
 			line = line.rstrip()
@@ -94,9 +95,54 @@ def parse_closest(gtf, outname):
 			info = word[11].split(";")
 			trans_id = info[0].strip("^gene_id ")
 			trans_id = trans_id.strip("\"")
-			if trans_id not in transcripts:
-				transcripts.append(trans_id)
-				output.write("{}\t{}\t{}\t{}\t{}\n".format(word[0], word[1], word[2], trans_id, word[12])),
+			if trans_id not in remove_reps[(word[0], word[1], word[2])]:
+				result[(word[0], word[1], word[2])] = (trans_id, word[12])
+				remove_reps[(word[0], word[1], word[2])].append(trans_id)
+	#Doing annotation
+	transcripts = []
+	if anno:
+		if genome:
+			for key in result:
+				transcripts.append(result[key][0])
+			anno = annotate_ensembl(transcripts, genome)
+			for key in result:
+				if result[key][0] in anno:
+					gene = result[key][0] 
+					output.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(key[0], key[1], key[2], result[key][0], result[key][1], anno[gene][1], anno[gene][2],anno[gene][3])),
+				else:
+					output.write("{}\t{}\t{}\t{}\t{}\n".format(key[0], key[1], key[2], result[key][0], result[key][1])),
+		else:
+			output.write("{}\t{}\t{}\t{}\t{}\n".format(key[0], key[1], key[2], result[key][0], result[key][1])),
+			raise Exception("Genome needed if doing annotation")
+	else:
+		for key in result:
+			output.write("{}\t{}\t{}\t{}\t{}\n".format(key[0], key[1], key[2], result[key][0], result[key][1])),
+
+def annotate_ensembl(dict_obj, genome):
+	ens = importr("biomaRt")
+	ensembl = ro.r.useMart("ensembl")
+	if genome == "mm10":
+		genome="mmusculus_gene_ensembl"
+	elif genome == "hg19":
+		genome="hsapiens_gene_ensembl"
+	ensembl = ro.r.useDataset(genome, mart=ensembl)
+	values = []
+	for key1 in dict_obj.keys():
+		values.append(key1)
+	C1BM = ro.r.getBM(attributes=StrVector(["ensembl_gene_id", "external_gene_name", "description", "gene_biotype"]), 
+		filters="ensembl_gene_id", values=values, mart=ensembl)
+	gene = list(C1BM.rx(True,1))
+	chr1 = list(C1BM.rx(True,2))
+	tss = list(C1BM.rx(True,3))
+	end = list(C1BM.rx(True,4))
+	st = list(C1BM.rx(True,5))
+	name = list(C1BM.rx(True,6))
+	des = list(C1BM.rx(True,7))
+	bio = list(C1BM.rx(True,8))
+	data = {}
+	for index, g in enumerate(gene):
+		data[g] = (chr1[index], tss[index], end[index], st[index], name[index], des[index], bio[index])
+	return data
 
 def read_peak_info(peak_file, ens):
 	peak_data = {}
@@ -128,13 +174,16 @@ def main():
 	custom_parser.add_argument('-p', '--peak', help='Peak file in bed format', required=True)
 	custom_parser.add_argument('-g', '--gtf', help='GTF file', required=True)
 	custom_parser.add_argument('-c', action='store_true', help='Find closest gene instead of closest TSS', required=False)
-	custom_parser.add_argument('-e', action='store_true', help='If GTF supplied and ensembl, convert peaks to correct format', required=False)
+	custom_parser.add_argument('-e', action='store_true', help='If GTF supplied is ensembl, convert peaks to correct format', required=False)
+	custom_parser.add_argument('-a', action='store_true', help='If using ensembl genes, will attempt to annotate them', required=False)
+	homer_parser.add_argument('-g', '--genome', help='If using a option, please specify genome, options are mm10/hg19', required=False)
 	custom_parser.add_argument('-o', '--output', help='Output name.', required=True)
 	
 	homer_parser.add_argument('-p', '--peak', help='Peak file', required=True)
 	homer_parser.add_argument('-g', '--genome', help='Genome, options are mm10/hg19', required=True)
-	homer_parser.add_argument('-a', '--gtf', help='Optional GTF file', required=False)
+	homer_parser.add_argument('-f', '--gtf', help='Optional GTF file', required=False)
 	homer_parser.add_argument('-e', action='store_true', help='If GTF supplied and ensembl, convert peaks to correct format', required=False)
+	homer_parser.add_argument('-a', action='store_true', help='If using ensembl genes, will attempt to annotate them', required=False)
 	homer_parser.add_argument('-o', '--out', help='Output name.', required=True)
 
 	if len(sys.argv)==1:
@@ -156,3 +205,5 @@ def main():
 	elif args["subparser_name"] == "homer":
 		peak_data, peak_file = read_peak_info(args["peak"], args["e"])
 		homer_annotation(peak_file, args["genome"], args["out"], args["gtf"])
+
+main()
