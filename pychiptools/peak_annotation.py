@@ -68,7 +68,7 @@ def closest_tss(peak_data, starts, chrom, outname):
 						tss_anno[peak] = gene, distance, status
 	output = open(outname, "w")
 	for key in tss_anno:
-		output.write("{}\t{}\t{}\t{}\t{}\t{}\n".format(peak_data[key][0], peak_data[key][1], peak_data[key][2], tss_anno[key][0], tss_anno[key][1])),
+		output.write("{}\t{}\t{}\t{}\t{}\n".format(peak_data[key][0], peak_data[key][1], peak_data[key][2], tss_anno[key][0], tss_anno[key][1])),
 
 def homer_annotation(peak, genome, output, gtf=None):
 	if gtf:
@@ -176,7 +176,7 @@ def main():
 	custom_parser.add_argument('-c', action='store_true', help='Find closest gene instead of closest TSS', required=False)
 	custom_parser.add_argument('-e', action='store_true', help='If GTF supplied is ensembl, convert peaks to correct format', required=False)
 	custom_parser.add_argument('-a', action='store_true', help='If using ensembl genes, will attempt to annotate them', required=False)
-	homer_parser.add_argument('-g', '--genome', help='If using a option, please specify genome, options are mm10/hg19', required=False)
+	custom_parser.add_argument('-n', '--genome', help='If using -a option, please specify genome, options are mm10/hg19', required=False)
 	custom_parser.add_argument('-o', '--output', help='Output name.', required=True)
 	
 	homer_parser.add_argument('-p', '--peak', help='Peak file', required=True)
