@@ -205,5 +205,3 @@ def main():
 	elif args["subparser_name"] == "homer":
 		peak_data, peak_file = read_peak_info(args["peak"], args["e"])
 		homer_annotation(peak_file, args["genome"], args["out"], args["gtf"])
-
-main()
