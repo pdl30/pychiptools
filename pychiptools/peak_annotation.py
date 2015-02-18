@@ -46,7 +46,7 @@ def f7(seq):
     seen_add = seen.add
     return [ x for x in seq if not (x in seen or seen_add(x))]
 
-def closest_tss(peak_data, starts, chrom, outname):
+def closest_tss(peak_data, starts, chrom, outname, anno=False, genome=None):
 	tss_anno = {}
 	for peak in sorted(peak_data):
 		mid = int(peak_data[peak][2]) - int(peak_data[peak][1])
@@ -67,8 +67,25 @@ def closest_tss(peak_data, starts, chrom, outname):
 							status = "downstream"
 						tss_anno[peak] = gene, distance, status
 	output = open(outname, "w")
-	for key in tss_anno:
-		output.write("{}\t{}\t{}\t{}\t{}\n".format(peak_data[key][0], peak_data[key][1], peak_data[key][2], tss_anno[key][0], tss_anno[key][1])),
+	transcripts = []
+	if anno:
+		if genome:
+			for key in tss_anno:
+				transcripts.append(tss_anno[key][0])
+			anno = annotate_ensembl(transcripts, genome)
+			for key in tss_anno:
+				if tss_anno[key][0] in anno:
+					gene = tss_anno[key][0] 
+					output.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(peak_data[key][0], peak_data[key][1], peak_data[key][2], tss_anno[key][0], tss_anno[key][1], 
+						anno[gene][1], anno[gene][2],anno[gene][3])),
+				else:
+					output.write("{}\t{}\t{}\t{}\t{}\n".format(peak_data[key][0], peak_data[key][1], peak_data[key][2], tss_anno[key][0], tss_anno[key][1])),
+		else:
+			output.write("{}\t{}\t{}\t{}\t{}\n".format(peak_data[key][0], peak_data[key][1], peak_data[key][2], tss_anno[key][0], tss_anno[key][1])),
+			raise Exception("Genome needed if doing annotation")
+	else:
+		for key in tss_anno:
+			output.write("{}\t{}\t{}\t{}\t{}\n".format(peak_data[key][0], peak_data[key][1], peak_data[key][2], tss_anno[key][0], tss_anno[key][1])),
 
 def homer_annotation(peak, genome, output, gtf=None):
 	if gtf:
@@ -197,10 +214,10 @@ def main():
 		peak_data, peak_file = read_peak_info(args["peak"], args["e"])
 		if args["c"]:
 			tmpgtf = closestbed(peak_file, args["gtf"])
-			parse_closest(tmpgtf, args["output"])
+			parse_closest(tmpgtf, args["output"], args["a"], args["genome"])
 		else:
 			starts, chrom = read_annotation(args["gtf"])
-			tss_anno = closest_tss(peak_data, starts, chrom, args["output"])
+			closest_tss(peak_data, starts, chrom, args["output"], args["a"], args["genome"])
 		os.remove(peak_file)
 	elif args["subparser_name"] == "homer":
 		peak_data, peak_file = read_peak_info(args["peak"], args["e"])
