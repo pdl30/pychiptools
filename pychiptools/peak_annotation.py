@@ -77,7 +77,7 @@ def closest_tss(peak_data, starts, chrom, outname, anno=False, genome=None):
 				if tss_anno[key][0] in anno:
 					gene = tss_anno[key][0] 
 					output.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(peak_data[key][0], peak_data[key][1], peak_data[key][2], tss_anno[key][0], tss_anno[key][1], 
-						anno[gene][1], anno[gene][2],anno[gene][3])),
+						anno[gene][0], anno[gene][1],anno[gene][2])),
 				else:
 					output.write("{}\t{}\t{}\t{}\t{}\n".format(peak_data[key][0], peak_data[key][1], peak_data[key][2], tss_anno[key][0], tss_anno[key][1])),
 		else:
@@ -125,7 +125,7 @@ def parse_closest(gtf, outname, anno=False, genome=None):
 			for key in result:
 				if result[key][0] in anno:
 					gene = result[key][0] 
-					output.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(key[0], key[1], key[2], result[key][0], result[key][1], anno[gene][1], anno[gene][2],anno[gene][3])),
+					output.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(key[0], key[1], key[2], result[key][0], result[key][1], anno[gene][0], anno[gene][1],anno[gene][2])),
 				else:
 					output.write("{}\t{}\t{}\t{}\t{}\n".format(key[0], key[1], key[2], result[key][0], result[key][1])),
 		else:
@@ -144,21 +144,17 @@ def annotate_ensembl(dict_obj, genome):
 		genome="hsapiens_gene_ensembl"
 	ensembl = ro.r.useDataset(genome, mart=ensembl)
 	values = []
-	for key1 in dict_obj.keys():
+	for key1 in dict_obj:
 		values.append(key1)
 	C1BM = ro.r.getBM(attributes=StrVector(["ensembl_gene_id", "external_gene_name", "description", "gene_biotype"]), 
 		filters="ensembl_gene_id", values=values, mart=ensembl)
 	gene = list(C1BM.rx(True,1))
-	chr1 = list(C1BM.rx(True,2))
-	tss = list(C1BM.rx(True,3))
-	end = list(C1BM.rx(True,4))
-	st = list(C1BM.rx(True,5))
-	name = list(C1BM.rx(True,6))
-	des = list(C1BM.rx(True,7))
-	bio = list(C1BM.rx(True,8))
+	name = list(C1BM.rx(True,2))
+	des = list(C1BM.rx(True,3))
+	bio = list(C1BM.rx(True,4))
 	data = {}
 	for index, g in enumerate(gene):
-		data[g] = (chr1[index], tss[index], end[index], st[index], name[index], des[index], bio[index])
+		data[g] = (name[index], des[index], bio[index])
 	return data
 
 def read_peak_info(peak_file, ens):
