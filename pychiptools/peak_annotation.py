@@ -209,9 +209,11 @@ def main():
 	if args["subparser_name"] == "custom":
 		peak_data, peak_file = read_peak_info(args["peak"], args["e"])
 		if args["c"]:
+			print "Finding Closest Gene\n"
 			tmpgtf = closestbed(peak_file, args["gtf"])
 			parse_closest(tmpgtf, args["output"], args["a"], args["genome"])
 		else:
+			print "Finding Closest TSS\n"
 			starts, chrom = read_annotation(args["gtf"])
 			closest_tss(peak_data, starts, chrom, args["output"], args["a"], args["genome"])
 		os.remove(peak_file)
