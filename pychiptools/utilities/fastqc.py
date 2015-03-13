@@ -12,15 +12,15 @@ import argparse
 import subprocess
 import sys, re, os
 
-def run_fastqc(fq1):
+def run_fastqc(fq1, outdir):
 	devnull = open('/dev/null', 'w')
-	command = ["fastqc", "{}".format(fq1)] #outdir must exist!
-	subprocess.call(command,  stdout=devnull)
+	command = "fastqc -q -o {0} {1}".format(outdir, fq1) #outdir must exist!
+	subprocess.call(command.split(),  stdout=devnull)
 
-def find_adapters(fq):
+def find_adapters(fq, outdir):
 	adapters = []
-	idir = re.sub(".fastq","", fq)
-	report = idir+"_fastqc/fastqc_data.txt"
+	#idir = re.sub(".fastq","", fq)
+	report = "{0}/{0}_fastqc/fastqc_data.txt".format(outdir)
 	flist = open(report).readlines()
 	parsing = False
 	for line in flist:
