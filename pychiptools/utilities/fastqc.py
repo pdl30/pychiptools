@@ -41,17 +41,18 @@ def find_adapters(fq, outdir):
 	return adapters
 
 def single_cut_adapters(adapters, fq1, outdir):
-	devnull = open('/dev/null', 'w')
+	trim = open('{}/trim_report.txt'.format(outdir), 'w')
 	adapt1 = ""
 	for i in adapters:
 		adapters = "-a {} ".format(i)
 		adapt1 = adapters+adapt1
 	command1 = "cutadapt -q 20 {0} --minimum-length=10 -o {1}/trimmed.fastq {2}".format(adapt1, outdir, fq1)
-	p = subprocess.Popen(command1.split())
+	p = subprocess.Popen(command1.split(), stdout=trim)
 	p.communicate()
 
 def paired_cut_adapters(adapters, fq1, outdir, rev_adapters, fq2):
 	devnull = open('/dev/null', 'w')
+	trim = open('{}/trim_report.txt'.format(outdir), 'w')
 	adapt1 = ""
 	for i in adapters:
 		adapters = "-a {} ".format(i)
@@ -63,10 +64,10 @@ def paired_cut_adapters(adapters, fq1, outdir, rev_adapters, fq2):
 		adapt2 = adapters+adapt2
 
 	command1 = "cutadapt -q 20 {0} --minimum-length=10 --paired-output {1}/tmp.2.fastq -o {1}/tmp.1.fastq {2} {3}".format(adapt1, outdir, fq1, fq2)
-	p = subprocess.Popen(command1.split())
+	p = subprocess.Popen(command1.split(), stdout=trim)
 	p.communicate()
 	command2 = "cutadapt -q 20 {0} --minimum-length=10 --paired-output {1}/trimmed_1.fastq -o {1}/trimmed_2.fastq {1}/tmp.2.fastq {1}/tmp.1.fastq".format(adapt2, outdir)
-	p = subprocess.Popen(command2.split())
+	p = subprocess.Popen(command2.split(), stdout=trim)
 	p.communicate()
 	cleanup = ["rm", "{0}/tmp.2.fastq".format(outdir), "{0}/tmp.1.fastq".format(outdir)]
 	subprocess.call(cleanup, stdout=devnull)
