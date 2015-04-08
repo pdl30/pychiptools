@@ -17,10 +17,10 @@ def run_fastqc(fq1, outdir):
 	command = "fastqc -q -o {0} {1}".format(outdir, fq1) #outdir must exist!
 	subprocess.call(command.split(),  stdout=devnull)
 
-def find_adapters(fq, outdir):
+def find_adapters(fq1):
 	adapters = []
-	#idir = re.sub(".fastq","", fq)
-	report = "{0}/{0}_fastqc/fastqc_data.txt".format(outdir)
+	fq = fq1.strip(".fastq")
+	report = "{0}_fastqc/fastqc_data.txt".format(fq)
 	flist = open(report).readlines()
 	parsing = False
 	for line in flist:

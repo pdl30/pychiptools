@@ -37,8 +37,8 @@ def main():
 		print "==> Running FastQC...\n"
 		fastqc.run_fastqc(fq1, args["outdir"])
 		fastqc.run_fastqc(fq2, args["outdir"])
-		fwd_adapt = fastqc.find_adapters(fq1, args["outdir"])
-		rev_adapt = fastqc.find_adapters(fq2, args["outdir"])
+		fwd_adapt = fastqc.find_adapters(fq1)
+		rev_adapt = fastqc.find_adapters(fq2)
 		if fwd_adapt or rev_adapt:
 			print "==> Removing adapters...\n"
 			fastqc.paired_cut_adapters(fwd_adapt, fq1, args["outdir"], rev_adapt, fq2)
@@ -53,7 +53,7 @@ def main():
 		fq1 = args["fastq"]
 		print "==> Running FastQC...\n"
 		fastqc.run_fastqc(fq1, args["outdir"])
-		adapt = fastqc.find_adapters(fq1, args["outdir"])
+		adapt = fastqc.find_adapters(fq1)
 		if adapt:
 			print "==> Removing adapters...\n"
 			fastqc.single_cut_adapters(adapt, fq1, args["outdir"])
