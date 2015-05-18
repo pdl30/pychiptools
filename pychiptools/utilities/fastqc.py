@@ -20,7 +20,7 @@ def run_fastqc(fq1, outdir):
 def find_adapters(outdir, fq1):
 	adapters = []
 	fastq = os.path.basename(fq1)
-	fq = fastq.strip(".fastq")
+	fq = re.sub(".fastq", "", fastq)
 	report = "{0}/{1}_fastqc/fastqc_data.txt".format(outdir, fq)
 	flist = open(report).readlines()
 	parsing = False

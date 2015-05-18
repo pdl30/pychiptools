@@ -94,7 +94,7 @@ def main():
 	peakrang_parser.add_argument('-c','--control', help='Control BED file - Optional', required=False, nargs="+")
 	peakrang_parser.add_argument('-g','--genome', help='Genome aligned to, options include mm10/mm9/hg19', required=True)
 	peakrang_parser.add_argument('-q','--qvalue', help='Qvalue to use. Must be float! e.g. 0.05', required=False, type=float)
-	peakrang_parser.add_argument('-threads', help='threads, default=1', default=1, required=False)
+	peakrang_parser.add_argument('-t' '--threads', help='threads, default=1', default=1, required=False)
 	if len(sys.argv)==1:
 		parser.print_help()
 		sys.exit(1)
