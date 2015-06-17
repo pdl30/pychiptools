@@ -19,9 +19,12 @@ def run_fastqc(fq1, outdir):
 
 def find_adapters(outdir, fq1):
 	adapters = []
-	fastq = os.path.basename(fq1)
-	fq = re.sub(".fastq", "", fastq)
-	report = "{0}/{1}_fastqc/fastqc_data.txt".format(outdir, fq)
+	name = re.sub(".fastq$", "", fq1)
+	name = re.sub(".fq$", "", name)
+	fq_dir = os.path.dirname(os.path.abspath(fq1))
+	command = "unzip -o -q {}_fastqc.zip -d {}".format(name, fq_dir)
+	subprocess.call(command.split())
+	report = name+"_fastqc/fastqc_data.txt"
 	flist = open(report).readlines()
 	parsing = False
 	for line in flist:

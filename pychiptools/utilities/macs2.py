@@ -16,7 +16,6 @@ def run_macs2(sample, name, genome, pvalue, control, histone, qvalue=None):
 	#In new version, could have multiple samples/controls??
 	#Dealing with names could be tough for these samples
 	samples = " ".join(sample)
-	controls = " ".join(control)
 	if histone==False:
 		if not control:
 			if pvalue:
@@ -26,6 +25,7 @@ def run_macs2(sample, name, genome, pvalue, control, histone, qvalue=None):
 				name = "{}_q1e-{}".format(name, qvalue)
 				command = "macs2 callpeak -t {} -g {} -n {} -f BED -q {} --nomodel".format(samples, genome, name, qvalue)
 		else:
+			controls = " ".join(control)
 			# WITH CONTROL
 			if pvalue:
 				name = "{}_p1e-{}".format(name, pvalue)
@@ -42,6 +42,7 @@ def run_macs2(sample, name, genome, pvalue, control, histone, qvalue=None):
 				name = "{}_q1e-{}".format(name, qvalue)
 				command = "macs2 callpeak -t {} -g {} -n {} -f BED -q {} --broad --nomodel".format(samples, genome, name, qvalue)
 		else:
+			controls = " ".join(control)
 			# WITH CONTROL
 			if pvalue:
 				name = "{}_p1e-{}".format(name, pvalue)
@@ -50,7 +51,6 @@ def run_macs2(sample, name, genome, pvalue, control, histone, qvalue=None):
 				name = "{}_q1e-{}".format(name, qvalue)
 				command = "macs2 callpeak -t {} -c {} -g {} -n {} -f BED -q {} --broad --nomodel".format(samples, controls, genome, name, qvalue)
 
-	print command
 	p = subprocess.Popen(command.split())
 	p.communicate()
 

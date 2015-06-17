@@ -33,10 +33,10 @@ def combine_sam_files(list_of_sams, outname):
 				new_file.write(read)
 		count += 1
 
-def convert_sam_bed(name, paired):
-	obed = name+"_tmp.BED"
+def convert_sam_bed(sam, name, paired, outdir):
+	obed = "{}/{}_tmp.BED".format(outdir, name)
 	outbed = open(obed, "wb")
-	samfile = pysam.Samfile(name+".sam", "r")
+	samfile = pysam.Samfile(sam, "r")
 	data = {}
 	count = 0
 	print "==> Converting sam to bed...\n"
@@ -58,18 +58,18 @@ def convert_sam_bed(name, paired):
 		outbed.write("{}\t{}\t{}\t{}\t0\t{}\n".format(samfile.getrname(read.tid), new_start, new_end, read.qname, strand)),
 
 	outbed.close()
-	command = "sort -k1,1 -k2,2g -o {} {}".format(name+".BED", name+"_tmp.BED")
+	command = "sort -k1,1 -k2,2g -o {0}/{1}.BED {0}/{1}_tmp.BED".format(outdir, name)
 	subprocess.call(command.split())
-	subprocess.call(["rm", name+"_tmp.BED"])
+	subprocess.call(["rm", "{}/{}_tmp.BED".format(outdir, name)])
 	if paired:
 		count /= 2
 	return count
 	
-def change_for_ucsc(name, chromsizes, ens=False):
+def change_for_ucsc(name, chromsizes, outdir, ens=False):
 	if ens:
-		outbed2 = open(name+'_tmp1.BED', "w")
+		outbed2 = open('{}/{}_tmp1.BED'.format(outdir, name), "w")
 		print "==> Converting Ensembl to UCSC chromosomes...\n"
-		with open(name+".BED") as f:
+		with open("{}/{}.BED".format(outdir, name)) as f:
 			for line in f:
 				line = line.rstrip()
 				word = line.split("\t")
@@ -85,19 +85,22 @@ def change_for_ucsc(name, chromsizes, ens=False):
 					pass
 				outbed2.write("{}\t{}\t{}\t{}\t{}\t{}\n".format(new_chr, word[1], word[2], word[3], word[4], word[5])),
 		outbed2.close()
-		subprocess.call(["bedClip", name+"_tmp1.BED", chromsizes, name+"_ucsc.BED"])	
-		subprocess.call(["rm", name+"_tmp1.BED"])
+		command = "bedClip {0}/{1}_tmp1.BED {2} {0}/{1}_ucsc.BED".format(outdir, name, chromsizes)
+		subprocess.call(command.split())	
+		command = "rm {}/{}_tmp1.BED".format(outdir, name)
+		subprocess.call(command.split())	
 	else:
-		subprocess.call(["bedClip", name+".BED", chromsizes, name+"_ucsc.BED"])	
-		os.remove(name+".BED")
+		command = "bedClip {0}/{1}.BED {2} {0}/{1}_ucsc.BED".format(outdir, name, chromsizes)
+		subprocess.call(command.split())	
+		os.remove("{}/{}.BED".format(outdir, name))
 
 
-def genomeCoverage(name, genome, scale=None):
+def genomeCoverage(name, genome, outdir, scale=None):
 	if scale:
-		outg2 = name+"_rpm.bedGraph"
+		outg2 = "{}/{}_rpm.bedGraph".format(outdir, name)
 	else:
-		outg2 = name+"_ucsc.bedGraph"
-	inbed = pybedtools.BedTool(name+"_ucsc.BED")
+		outg2 = "{}/{}_ucsc.bedGraph".format(outdir, name)
+	inbed = pybedtools.BedTool("{}/{}_ucsc.BED".format(outdir, name))
 	print "==> Creating bedGraph...\n"
 	if scale:
 		outcov = inbed.genome_coverage(bg=True, genome=genome, scale=scale)
@@ -105,13 +108,13 @@ def genomeCoverage(name, genome, scale=None):
 		outcov = inbed.genome_coverage(bg=True, genome=genome)
 	outcov.saveas(outg2)
 
-def bedgraphtobigwig(name, chrom, house=False, rpm=False):
+def bedgraphtobigwig(name, chrom, outdir, house=False, rpm=False):
 	print "==> Converting bedGraph to bigWig...\n"
 	if rpm:
-		command = ["bedGraphToBigWig", name+"_rpm.bedGraph", chrom, name+"_rpm.bw"]
+		command = "bedGraphToBigWig {0}/{1}_rpm.bedGraph {2} {0}/{1}_rpm.bw".format(outdir, name, chrom)
 	else:
-		command = ["bedGraphToBigWig", name+"_ucsc.bedGraph", chrom, name+".bw"]
-	subprocess.call(command)
+		command = "bedGraphToBigWig {0}/{1}_ucsc.bedGraph {2} {0}/{1}.bw".format(outdir, name, chrom)
+	subprocess.call(command.split())
 
 def ConfigSectionMap(Config, section):
 	dict1 = {}
@@ -134,6 +137,7 @@ def main():
 	parser.add_argument('-g','--genome', help='Genome the samples are aligned to, options include mm10/mm9/hg19', required=True)
 	parser.add_argument('-e', action='store_true', help='Are samples aligned to Ensembl genome?', required=False)
 	parser.add_argument('-rpm', action='store_true', help='Scale resulting bigwig to RPM', required=False)
+	parser.add_argument('-o', '--outdir', help='Output directory', required=True)
 	if len(sys.argv)==1:
 		parser.print_help()
 		sys.exit(1)
@@ -141,20 +145,24 @@ def main():
 	chrom = pkg_resources.resource_filename('pychiptools', 'data/{}.chrom.sizes'.format(args["genome"]))
 	
 	path0 = os.getcwd()
-
+	
+	if not os.path.isdir(args["outdir"]):
+		os.mkdir(args["outdir"])
+	
 	if args["input"]:
-		name = re.sub(".sam$", "", args["input"])
-		count = convert_sam_bed(name, args["p"])
+		name = os.path.basename(args["input"])
+		name = re.sub(".sam$", "", name)
+		count = convert_sam_bed(args["input"], name, args["p"], args["outdir"])
 		scale = float(1000000)/int(count)
 
-		change_for_ucsc(name, chrom, args["e"])
+		change_for_ucsc(name, chrom, args["outdir"], args["e"])
 
 		if args["rpm"]:
-			genomeCoverage(name, args["genome"], scale)
-			bedgraphtobigwig(name, chrom, rpm=True)	
+			genomeCoverage(name, args["genome"], args["outdir"], scale)
+			bedgraphtobigwig(name, chrom, args["outdir"], rpm=True)	
 		else:
-			genomeCoverage(name, args["genome"])
-			bedgraphtobigwig(name, chrom)
+			genomeCoverage(name, args["genome"], args["outdir"])
+			bedgraphtobigwig(name, chrom, args["outdir"])
 
 	elif args["config"]:
 		Config = ConfigParser.ConfigParser()
@@ -163,15 +171,16 @@ def main():
 
 		conditions = ConfigSectionMap(Config, "Conditions")
 		for key in conditions:
-			name = re.sub(".sam$", "", key)
-			count = convert_sam_bed(name, args["p"])
+			name = os.path.basename(args["input"])
+			name = re.sub(".sam$", "", name)
+			count = convert_sam_bed(key, name, args["p"], args["outdir"])
 			scale = float(1000000)/int(count)
 
-			change_for_ucsc(name, chrom, args["e"])
+			change_for_ucsc(name, chrom, args["outdir"], args["e"])
 
 			if args["rpm"]:
-				genomeCoverage(name, args["genome"], scale)
-				bedgraphtobigwig(name, chrom, rpm=True)	
+				genomeCoverage(name, args["genome"], args["outdir"], scale)
+				bedgraphtobigwig(name, chrom, args["outdir"], rpm=True)	
 			else:
-				genomeCoverage(name, args["genome"])
-				bedgraphtobigwig(name, chrom)
+				genomeCoverage(name, args["genome"], args["outdir"])
+				bedgraphtobigwig(name, chrom, args["outdir"])
