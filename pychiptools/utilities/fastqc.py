@@ -14,7 +14,7 @@ import sys, re, os
 
 def run_fastqc(fq1, outdir):
 	devnull = open('/dev/null', 'w')
-	command = "fastqc -q -o {0} {1}".format(outdir, fq1) #outdir must exist!
+	command = "fastqc -q {}".format(fq1) #outdir must exist!
 	subprocess.call(command.split(),  stdout=devnull)
 
 def find_adapters(outdir, fq1):
