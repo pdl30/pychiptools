@@ -126,16 +126,12 @@ def main():
 		if args["pvalue"]:
 			name = os.path.basename(args["name"])
 			name = "{}_p1e-{}".format(name, args["pvalue"])
-			macs2.run_macs2(args["sample"], args["name"], genome, outdir, args["pvalue"], args["control"], args["b"])
-			macs2.convert_peaks_to_bed( name, outdir)
-			macs2.post_process_peaks_for_ucsc(name, chrom, outdir)
+			macs2.run_macs2(args["sample"], args["name"], genome, outdir, args["pvalue"], args["control"], args["b"], chrom)
 
 		elif args["qvalue"]:
 			name = os.path.basename(args["name"])
 			name = "{}_q-{}".format(name, args["qvalue"])
-			macs2.run_macs2(args["sample"], args["name"], genome, outdir, None, args["control"], args["b"], qvalue=args["qvalue"])
-			macs2.convert_peaks_to_bed(name, outdir)
-			macs2.post_process_peaks_for_ucsc(name, chrom, outdir)
+			macs2.run_macs2(args["sample"], args["name"], genome, outdir, None, args["control"], args["b"], chrom, qvalue=args["qvalue"])
 		else:
 			#Run all Pvalues
 			pvalues = [3,4,5,6,7,9,12,15]
@@ -147,7 +143,7 @@ def main():
 
 			pool = Pool(8)
 			pool.map(function1, itertools.izip(itertools.repeat(args["sample"]), itertools.repeat(args["name"]), itertools.repeat(genome), 
-				itertools.repeat(outdir), pvalues, itertools.repeat(args["control"]), itertools.repeat(args["b"])))
+				itertools.repeat(outdir), pvalues, itertools.repeat(args["control"]), itertools.repeat(args["b"], itertools.repeat(chrom))))
 
 			pool2 = Pool(8)
 			pool2.map(function2, itertools.izip(name_list, itertools.repeat(outdir)))

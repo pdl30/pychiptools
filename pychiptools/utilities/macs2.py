@@ -12,7 +12,7 @@ import subprocess
 import sys, os, re
 import argparse
 
-def run_macs2(sample, name, genome, outdir, pvalue, control, histone, qvalue=None):
+def run_macs2(sample, name, genome, outdir, pvalue, control, histone, chrom, qvalue=None):
 	#In new version, could have multiple samples/controls??
 	#Dealing with names could be tough for these samples
 	samples = " ".join(sample)
@@ -24,8 +24,9 @@ def run_macs2(sample, name, genome, outdir, pvalue, control, histone, qvalue=Non
 				command = "macs2 callpeak -t {} -g {} -n {} -f BED -p 1e-{} --nomodel --outdir {}".format(samples, genome, name, pvalue, outdir)
 			else:
 				name = os.path.basename(name)
-				name = "{}_q1e-{}".format(name, qvalue)
+				name = "{}_q-{}".format(name, qvalue)
 				command = "macs2 callpeak -t {} -g {} -n {} -f BED -q {} --nomodel --outdir {}".format(samples, genome, name, qvalue, outdir)
+
 		else:
 			controls = " ".join(control)
 			# WITH CONTROL
@@ -35,8 +36,11 @@ def run_macs2(sample, name, genome, outdir, pvalue, control, histone, qvalue=Non
 				command = "macs2 callpeak -t {} -c {} -g {} -n {} -f BED -p 1e-{} --nomodel --outdir {}".format(samples, controls, genome, name, pvalue, outdir)
 			else:
 				name = os.path.basename(name)
-				name = "{}_q1e-{}".format(name, qvalue)
+				name = "{}_q-{}".format(name, qvalue)
 				command = "macs2 callpeak -t {} -c {} -g {} -n {} -f BED -q {} --nomodel --outdir {}".format(samples, controls, genome, name, qvalue, outdir)
+		subprocess.call(command.split())
+		convert_peaks_to_bed(name, outdir)
+		post_process_peaks_for_ucsc(name, chrom, outdir)
 	else:
 		if not control:
 			if pvalue:
@@ -45,7 +49,7 @@ def run_macs2(sample, name, genome, outdir, pvalue, control, histone, qvalue=Non
 				command = "macs2 callpeak -t {} -g {} -n {} -f BED -p 1e-{} --broad --nomodel --outdir {}".format(samples, genome, name, pvalue, outdir)
 			else:
 				name = os.path.basename(name)
-				name = "{}_q1e-{}".format(name, qvalue)
+				name = "{}_q-{}".format(name, qvalue)
 				command = "macs2 callpeak -t {} -g {} -n {} -f BED -q {} --broad --nomodel --outdir {}".format(samples, genome, name, qvalue, outdir)
 		else:
 			controls = " ".join(control)
@@ -56,10 +60,11 @@ def run_macs2(sample, name, genome, outdir, pvalue, control, histone, qvalue=Non
 				command = "macs2 callpeak -t {} -c {} -g {} -n {} -f BED -p 1e-{} --broad --nomodel --outdir {}".format(samples, controls, genome, name, pvalue, outdir)
 			else:
 				name = os.path.basename(name)
-				name = "{}_q1e-{}".format(name, qvalue)
+				name = "{}_q-{}".format(name, qvalue)
 				command = "macs2 callpeak -t {} -c {} -g {} -n {} -f BED -q {} --broad --nomodel --outdir {}".format(samples, controls, genome, name, qvalue, outdir)
-	p = subprocess.Popen(command.split())
-	p.communicate()
+		subprocess.call(command.split())
+		convert_peaks_to_bed(name, outdir)
+		post_process_histone_peaks(name, chrom, outdir)
 
 
 def convert_peaks_to_bed(name, outdir):

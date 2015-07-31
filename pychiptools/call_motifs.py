@@ -42,11 +42,10 @@ def adjust_peak_size(bed_file, outbed_file, size=400):
 			output.write("\n"),
 	output.close()
 
-def run_homer(bed, genome, nmotifs=25, lmotif=12):
-	name = re.sub(".bed", "_homer", bed)
-	command = "findMotifsGenome.pl {} {} {} -S {} -len {}".format(bed, genome, name, nmotifs, lmotif)
+def run_homer(bed, genome, outdir, nmotifs=25, lmotif=12):
+	command = "findMotifsGenome.pl {} {} {} -S {} -len {}".format(bed, genome, outdir, nmotifs, lmotif)
 	subprocess.call(command.split())
-	return name
+	return outdir
 
 def fasta_from_bed(bed, ifasta, outfa):
 	command2 = "fastaFromBed -fi {} -bed {} -fo {}".format(ifasta, bed, outfa)
@@ -73,22 +72,22 @@ def main():
 	homer_parser.add_argument('-n', '--NMOTIFS', help='Number of Motifs. Default is 25', required=False, default=25)
 	homer_parser.add_argument('-g', '--GENOME', help='Depends on what genomes homer has installed e.g. mm10/hg19. Default is mm10', required=True, default="mm10")
 	homer_parser.add_argument('-l', '--LMOTIFS', help='Length of Motifs. Default is 12', required=False, default=12)
-	homer_parser.add_argument('-fimo', help='Runs FIMO on Meme Motifs', required=False, action='store_true')
+	homer_parser.add_argument('-o', '--outdir', help='Output directory', required=False)
 
 	fimo_parser = subparsers.add_parser('fimo', help='Runs FIMO')
 	fimo_parser.add_argument('-i','--INPUT', help='Input motifs in meme format', required=False)
 	fimo_parser.add_argument('-f','--FASTA', help='Reference fasta', required=False)
-	fimo_parser.add_argument('-o', '--OUTDIR', help='Output directory', required=False)
+	fimo_parser.add_argument('-o', '--outdir', help='Output directory', required=False)
 	if len(sys.argv)==1:
 		parser.print_help()
 		sys.exit(1)
 	args = vars(parser.parse_args())
 
 	if args["subparser_name"] == "meme":
-		run_meme_finder(args["FASTA"], args["OUTDIR"], args["NMOTIFS"])
+		run_meme_finder(args["FASTA"], args["outdir"], args["NMOTIFS"])
 
 	if args["subparser_name"] == "homer":
-		run_homer(args["BED"], args["GENOME"], args["NMOTIFS"], args["LMOTIFS"])
+		run_homer(args["BED"], args["GENOME"], args["outdir"], args["NMOTIFS"], args["LMOTIFS"])
 
 	if args["subparser_name"] == "fimo":
-		run_fimo_scanner(args["INPUT"], args["FASTA"], args["OUTDIR"])
+		run_fimo_scanner(args["INPUT"], args["FASTA"], args["outdir"])
