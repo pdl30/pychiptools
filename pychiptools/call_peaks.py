@@ -54,7 +54,7 @@ def post_process_peakranger(name, chrom_sizes):
 			word = line.split("\t")
 			output.write("{}\t{}\t{}\n".format(word[0], word[1], word[2])),
 	output.close()
-	command = "bedToBigBed {} /home/patrick/Scripts/UCSC/mm10.chrom.sizes {}".format(outname+"_peakranger.bed", outname+"_peakranger.bb")
+	command = "bedToBigBed {} {} {}".format(outname+"_peakranger.bed", chrom_sizes, outname+"_peakranger.bb")
 	subprocess.call(command.split())
 
 def function1(args):
