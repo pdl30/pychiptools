@@ -20,8 +20,8 @@ def main():
 	parser.add_argument('-i','--index', help='Path to bowtie index', required=True)
 	parser.add_argument('-v','--version', help='Which bowtie to use, options are 1/2. default=2', default="2")
 	parser.add_argument('-t','--threads', help='For bowtie2, how many threads to use (i.e. -p option on bowtie2', default=1, required=False)
+	parser.add_argument('-q', help='Will skip FastQC', action='store_true', required=False)
 	parser.add_argument('-n','--samname', help='Name of output sam file', required=True)
-	parser.add_argument('-n', help='Will skip FastQC', action='store_true', required=False)
 	parser.add_argument('-o','--outdir', help='Name of results directory', required=True)
 	if len(sys.argv)==1:
 		parser.print_help()
@@ -40,7 +40,7 @@ def main():
 		fq1 = args["fastq"]
 
 	if args["pair"]:
-		if not args["n"]:
+		if not args["q"]:
 			print "==> Running FastQC...\n"
 			fastqc.run_fastqc(fq1, args["outdir"])
 			fastqc.run_fastqc(fq2, args["outdir"])
@@ -64,7 +64,7 @@ def main():
 				alignment.paired_bowtie2(fq1, fq2, args["samname"], args["index"], args["outdir"], args["threads"])
 
 	elif args["fastq"]:
-		if not args["n"]:
+		if not args["q"]:
 			print "==> Running FastQC...\n"
 			fastqc.run_fastqc(fq1, args["outdir"])
 			adapt = fastqc.find_adapters(args["outdir"], fq1)

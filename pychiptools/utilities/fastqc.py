@@ -13,18 +13,16 @@ import subprocess
 import sys, re, os
 
 def run_fastqc(fq1, outdir):
-	devnull = open('/dev/null', 'w')
 	command = "fastqc -q -o {0} {1}".format(outdir, fq1) #outdir must exist!
-	subprocess.call(command.split(),  stdout=devnull)
+	subprocess.call(command.split())
 
 def find_adapters(outdir, fq1):
 	adapters = []
-	name = re.sub(".fastq$", "", fq1)
-	name = re.sub(".fq$", "", name)
-	fq_dir = os.path.dirname(os.path.abspath(fq1))
-	command = "unzip -o -q {}_fastqc.zip -d {}".format(name, fq_dir)
+	name = re.sub(".fastq", "", fq1)
+	name = os.path.basename(name)
+	command = "unzip -o -q {}/{}_fastqc.zip -d {}".format(outdir, name, outdir)
 	subprocess.call(command.split())
-	report = name+"_fastqc/fastqc_data.txt"
+	report = "{}/{}_fastqc/fastqc_data.txt".format(outdir, name)
 	flist = open(report).readlines()
 	parsing = False
 	for line in flist:
