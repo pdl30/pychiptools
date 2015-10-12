@@ -100,13 +100,18 @@ def genomeCoverage(name, genome, outdir, scale=None):
 		outg2 = "{}/{}_rpm.bedGraph".format(outdir, name)
 	else:
 		outg2 = "{}/{}_ucsc.bedGraph".format(outdir, name)
-	inbed = pybedtools.BedTool("{}/{}_ucsc.BED".format(outdir, name))
-	print "==> Creating bedGraph...\n"
+#	inbed = pybedtools.BedTool("{}/{}_ucsc.BED".format(outdir, name))
+#	print "==> Creating bedGraph...\n"
+#	if scale:
+#		outcov = inbed.genome_coverage(bg=True, genome=genome, scale=scale)
+#	else:
+#		outcov = inbed.genome_coverage(bg=True, genome=genome)
 	if scale:
-		outcov = inbed.genome_coverage(bg=True, genome=genome, scale=scale)
+		command = "genomeCoverageBed -bg -scale {} -i {}/{}_ucsc.BED -g {} > {}".format(scale, outdir, name, genome, outg2)
+		subprocess.call(command, shell=True)
 	else:
-		outcov = inbed.genome_coverage(bg=True, genome=genome)
-	outcov.saveas(outg2)
+		command = "genomeCoverageBed -bg -i {}/{}_ucsc.BED -g {} > {}".format(outdir, name, genome, outg2)
+		subprocess.call(command, shell=True)
 
 def bedgraphtobigwig(name, chrom, outdir, house=False, rpm=False):
 	print "==> Converting bedGraph to bigWig...\n"
@@ -158,10 +163,10 @@ def main():
 		change_for_ucsc(name, chrom, args["outdir"], args["e"])
 
 		if args["rpm"]:
-			genomeCoverage(name, args["genome"], args["outdir"], scale)
+			genomeCoverage(name, chrom, args["outdir"], scale)
 			bedgraphtobigwig(name, chrom, args["outdir"], rpm=True)	
 		else:
-			genomeCoverage(name, args["genome"], args["outdir"])
+			genomeCoverage(name, chrom, args["outdir"])
 			bedgraphtobigwig(name, chrom, args["outdir"])
 
 	elif args["config"]:

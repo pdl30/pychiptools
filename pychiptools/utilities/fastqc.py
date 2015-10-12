@@ -13,15 +13,12 @@ import subprocess
 import sys, re, os
 
 def run_fastqc(fq1, outdir):
-	command = "fastqc -q -o {0} {1}".format(outdir, fq1) #outdir must exist!
+	command = "fastqc -q {} -o {}".format(fq1, outdir) 
 	subprocess.call(command.split())
-	devnull = open('/dev/null', 'w')
-	command = "fastqc -q {}".format(fq1) #outdir must exist!
-	subprocess.call(command.split(),  stdout=devnull)
-	
-def find_adapters(outdir, fq1):
+
+def find_adapters(outdir, fq):
 	adapters = []
-	name = re.sub(".fastq", "", fq1)
+	name = re.sub(".fastq", "", fq)
 	name = os.path.basename(name)
 	command = "unzip -o -q {}/{}_fastqc.zip -d {}".format(outdir, name, outdir)
 	subprocess.call(command.split())
